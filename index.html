@@ -1,0 +1,11 @@
+<head>
+</head>
+<body>
+<style>
+    body {
+        margin: 0;
+    }
+</style>
+<canvas></canvas>
+</body>
+<script src="./index.js"></script>
