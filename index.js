@@ -1,3 +1,8 @@
+import { Player } from './Classes/player.js'
+import { Projectile } from './Classes/projectile.js'
+import { Enemy } from './Classes/enemy.js';
+import { Particle } from './Classes/particle.js';
+
 const canvas = document.querySelector('canvas');
 
 const c = canvas.getContext('2d');
@@ -5,145 +10,27 @@ const c = canvas.getContext('2d');
 canvas.width = innerWidth;
 canvas.height = innerHeight;
 
+const ipAddress = getIP()
+
+const x = canvas.width / 2
+const y = canvas.height / 2
+
 const scoreID = document.querySelector("#scoreID")
 const endScore = document.querySelector("#endScore")
 const startGameBtn = document.querySelector("#startGameBtn")
 const modalEL = document.querySelector("#modalEL")
 const killID = document.querySelector("#killID")
 const endScoreEnemies = document.querySelector("#endScoreEnemies")
+const ipAddressEl = document.querySelector("#ipAddressEl")
 
 let animationID
 let score = 0
 let enemiesKilled = 0;
-/**
-  ____  _                          ____ _               
- |  _ \| | __ _ _   _  ___ _ __   / ___| | __ _ ___ ___ 
- | |_) | |/ _` | | | |/ _ \ '__| | |   | |/ _` / __/ __|
- |  __/| | (_| | |_| |  __/ |    | |___| | (_| \__ \__ \
- |_|   |_|\__,_|\__, |\___|_|     \____|_|\__,_|___/___/
-                |___/                                   
-*/
-class Player {
-    constructor(x,y,radius,color,level,health) {
-        this.x = x
-        this.y = y
+let player
 
-        this.radius = radius
-        this.color = color
-
-        this.level = level
-        this.health
-    }
-
-    draw() {
-        c.beginPath()
-        c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
-        c.fillStyle = this.color
-        c.fill()
-    }
-}
-
-/**
-  ____            _           _   _ _         ____ _               
- |  _ \ _ __ ___ (_) ___  ___| |_(_) | ___   / ___| | __ _ ___ ___ 
- | |_) | '__/ _ \| |/ _ \/ __| __| | |/ _ \ | |   | |/ _` / __/ __|
- |  __/| | | (_) | |  __/ (__| |_| | |  __/ | |___| | (_| \__ \__ \
- |_|   |_|  \___// |\___|\___|\__|_|_|\___|  \____|_|\__,_|___/___/
-               |__/                                                
-*/
-class Projectile {
-    constructor(x,y,radius,color,velocity){
-        this.x = x
-        this.y = y
-        this.radius = radius
-        this.color = color
-        this.velocity = velocity
-    }
-    draw() {
-        c.beginPath()
-        c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
-        c.fillStyle = this.color
-        c.fill()
-    }
-
-    update() {
-        this.draw()
-        this.x = this.x + this.velocity.x
-        this.y = this.y + this.velocity.y
-    }
-}
-
-/**
-  _____                               ____ _               
- | ____|_ __   ___ _ __ ___  _   _   / ___| | __ _ ___ ___ 
- |  _| | '_ \ / _ \ '_ ` _ \| | | | | |   | |/ _` / __/ __|
- | |___| | | |  __/ | | | | | |_| | | |___| | (_| \__ \__ \
- |_____|_| |_|\___|_| |_| |_|\__, |  \____|_|\__,_|___/___/
-                             |___/                         
-*/
-class Enemy {
-    constructor(x,y,radius,color,velocity){
-        this.x = x
-        this.y = y
-        this.radius = radius
-        this.color = color
-        this.velocity = velocity
-    }
-    draw() {
-        c.beginPath()
-        c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
-        c.fillStyle = this.color
-        c.fill()
-    }
-
-    update() {
-        this.draw()
-        this.x = this.x + this.velocity.x
-        this.y = this.y + this.velocity.y
-    }
-}
-
-
-/**
-  ____            _   _      _         ____ _               
- |  _ \ __ _ _ __| |_(_) ___| | ___   / ___| | __ _ ___ ___ 
- | |_) / _` | '__| __| |/ __| |/ _ \ | |   | |/ _` / __/ __|
- |  __/ (_| | |  | |_| | (__| |  __/ | |___| | (_| \__ \__ \
- |_|   \__,_|_|   \__|_|\___|_|\___|  \____|_|\__,_|___/___/
-                                                            
-*/
-const friction = 0.99
-
-class Particle {
-    constructor(x,y,radius,color,velocity){
-        this.x = x
-        this.y = y
-        this.radius = radius
-        this.color = color
-        this.velocity = velocity
-        this.alpha = 1
-    }
-    draw() {
-        c.save()
-        c.globalAlpha = this.alpha
-        c.beginPath()
-        c.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false)
-        c.fillStyle = this.color
-        c.fill()
-        c.restore()
-    }
-
-    update() {
-        this.draw()
-        this.velocity.x *= friction
-        this.velocity.y *= friction
-        this.x = this.x + this.velocity.x
-        this.y = this.y + this.velocity.y
-        this.alpha -= 0.01
-    }
-}
-const x = canvas.width / 2
-const y = canvas.height / 2
+let projectiles = []
+let enemies = []
+let particles = []
 
 
 /**
@@ -155,6 +42,7 @@ const y = canvas.height / 2
                                                             
 */
 function init() {
+
     player = new Player(x,y,10, 'white', 0,100)
     projectiles = []
     enemies = []
@@ -164,6 +52,7 @@ function init() {
     enemiesKilled = 0
     scoreID.innerHTML = score
     endScore.innerHTML = score
+    getIP()
 }
 
 
@@ -262,6 +151,8 @@ function animate() {
             cancelAnimationFrame(animationID)   
             endScore.innerHTML = score
             endScoreEnemies.innerHTML = enemiesKilled
+            getIP()
+            ipAddressEl.innerHTML = ipAddress
             modalEL.style.display = 'flex'         
         }
 
@@ -346,3 +237,12 @@ addEventListener('keypress', (event) => {
         console.log('D')
 })
 
+async function getIP() {
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        document.getElementById('ipAddressEl').innerText = `${data.ip}`;
+    } catch (error) {
+        console.error('Error fetching IP address:', error);
+    }
+}
