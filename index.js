@@ -5,6 +5,10 @@ const c = canvas.getContext('2d');
 canvas.width = innerWidth;
 canvas.height = innerHeight;
 
+const scoreID = document.querySelector("#scoreID")
+const endScore = document.querySelector("#endScore")
+const startGameBtn = document.querySelector("#startGameBtn")
+const modalEL = document.querySelector("#modalEL")
 
 class Player {
     constructor(x,y,radius,color,level) {
@@ -69,6 +73,7 @@ class Enemy {
     }
 }
 
+const friction = 0.99
 
 class Particle {
     constructor(x,y,radius,color,velocity){
@@ -91,6 +96,8 @@ class Particle {
 
     update() {
         this.draw()
+        this.velocity.x *= friction
+        this.velocity.y *= friction
         this.x = this.x + this.velocity.x
         this.y = this.y + this.velocity.y
         this.alpha -= 0.01
@@ -100,15 +107,20 @@ const x = canvas.width / 2
 const y = canvas.height / 2
 
 
+function init() {
+    player = new Player(x,y,10, 'white', 0)
+    projectiles = []
+    enemies = []
+    particles = []
+    console.log(player)
+    score = 0
+    scoreID.innerHTML = score
+    endScore.innerHTML = score
+}
 
-const player = new Player(x,y,10, 'white', 0)
-const projectiles = []
-const enemies = []
-const particles = []
 
 
 
-console.log(player);
 
 function spawnEnemies(){
     setInterval(() => {
@@ -137,6 +149,7 @@ function spawnEnemies(){
 }
 
 let animationID
+let score = 0
 
 function animate() {
     animationID = requestAnimationFrame(animate)
@@ -172,9 +185,13 @@ function animate() {
     enemies.forEach((enemy, index) => {
         enemy.update()
         const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y)
+
+        //end game
         if (dist - enemy.radius - player.radius < 1) {
             console.log('end game')
-            cancelAnimationFrame(animationID)            
+            cancelAnimationFrame(animationID)   
+            endScore.innerHTML = score
+            modalEL.style.display = 'flex'         
         }
 
         // when projectiles touch enemy
@@ -182,6 +199,8 @@ function animate() {
             const dist = Math.hypot(projectile.x - enemy.x, projectile.y - enemy.y)
             if (dist - enemy.radius - projectile.radius < 1) {
 
+
+               
                 //create explosions
                 for (let i = 0; i < enemy.radius * 2; i++) {
                     particles.push(new Particle(projectile.x, projectile.y, Math.random() * 2, enemy.color, 
@@ -194,6 +213,9 @@ function animate() {
                 }
                     console.log('removed from screen')
                 if (enemy.radius - 10 > 5){
+                     // increase score
+                    score += 100
+                    scoreID.innerHTML = score
                     gsap.to(enemy, {
                         radius: enemy.radius - 10
                     })
@@ -201,7 +223,10 @@ function animate() {
                         projectiles.splice(projectileIndex, 1)
                     }, 0) 
                                   
-                } else {                    
+                } else {          
+                     // increase score
+                    score += 250
+                    scoreID.innerHTML = score          
                     setTimeout(() => {
                         enemies.splice(index, 1)
                         projectiles.splice(projectileIndex, 1)
@@ -214,7 +239,7 @@ function animate() {
     })
 }
 
-addEventListener('mousedown', (event) => { 
+addEventListener('click', (event) => { 
     // console.log(event.clientX, event.clientY)
      const angle = Math.atan2(event.clientY - canvas.height /2, event.clientX - canvas.width /2)
      console.log(angle)
@@ -225,6 +250,14 @@ addEventListener('mousedown', (event) => {
      projectiles.push(new Projectile(canvas.width /2, canvas.height /2, 5, 'white', 
          velocity))
  })
+
+startGameBtn.addEventListener('click', () => {
+    init()
+    animate()
+    spawnEnemies()
+    modalEL.style.display = 'none'
+})
+
 addEventListener('keypress', (event) => {
     if (event.key === 'w')
         console.log('W')
@@ -236,5 +269,3 @@ addEventListener('keypress', (event) => {
         console.log('D')
 })
 
-animate()
-spawnEnemies()
