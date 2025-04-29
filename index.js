@@ -9,9 +9,22 @@ const scoreID = document.querySelector("#scoreID")
 const endScore = document.querySelector("#endScore")
 const startGameBtn = document.querySelector("#startGameBtn")
 const modalEL = document.querySelector("#modalEL")
+const killID = document.querySelector("#killID")
+const endScoreEnemies = document.querySelector("#endScoreEnemies")
 
+let animationID
+let score = 0
+let enemiesKilled = 0;
+/**
+  ____  _                          ____ _               
+ |  _ \| | __ _ _   _  ___ _ __   / ___| | __ _ ___ ___ 
+ | |_) | |/ _` | | | |/ _ \ '__| | |   | |/ _` / __/ __|
+ |  __/| | (_| | |_| |  __/ |    | |___| | (_| \__ \__ \
+ |_|   |_|\__,_|\__, |\___|_|     \____|_|\__,_|___/___/
+                |___/                                   
+*/
 class Player {
-    constructor(x,y,radius,color,level) {
+    constructor(x,y,radius,color,level,health) {
         this.x = x
         this.y = y
 
@@ -19,6 +32,7 @@ class Player {
         this.color = color
 
         this.level = level
+        this.health
     }
 
     draw() {
@@ -29,6 +43,14 @@ class Player {
     }
 }
 
+/**
+  ____            _           _   _ _         ____ _               
+ |  _ \ _ __ ___ (_) ___  ___| |_(_) | ___   / ___| | __ _ ___ ___ 
+ | |_) | '__/ _ \| |/ _ \/ __| __| | |/ _ \ | |   | |/ _` / __/ __|
+ |  __/| | | (_) | |  __/ (__| |_| | |  __/ | |___| | (_| \__ \__ \
+ |_|   |_|  \___// |\___|\___|\__|_|_|\___|  \____|_|\__,_|___/___/
+               |__/                                                
+*/
 class Projectile {
     constructor(x,y,radius,color,velocity){
         this.x = x
@@ -51,6 +73,14 @@ class Projectile {
     }
 }
 
+/**
+  _____                               ____ _               
+ | ____|_ __   ___ _ __ ___  _   _   / ___| | __ _ ___ ___ 
+ |  _| | '_ \ / _ \ '_ ` _ \| | | | | |   | |/ _` / __/ __|
+ | |___| | | |  __/ | | | | | |_| | | |___| | (_| \__ \__ \
+ |_____|_| |_|\___|_| |_| |_|\__, |  \____|_|\__,_|___/___/
+                             |___/                         
+*/
 class Enemy {
     constructor(x,y,radius,color,velocity){
         this.x = x
@@ -73,6 +103,15 @@ class Enemy {
     }
 }
 
+
+/**
+  ____            _   _      _         ____ _               
+ |  _ \ __ _ _ __| |_(_) ___| | ___   / ___| | __ _ ___ ___ 
+ | |_) / _` | '__| __| |/ __| |/ _ \ | |   | |/ _` / __/ __|
+ |  __/ (_| | |  | |_| | (__| |  __/ | |___| | (_| \__ \__ \
+ |_|   \__,_|_|   \__|_|\___|_|\___|  \____|_|\__,_|___/___/
+                                                            
+*/
 const friction = 0.99
 
 class Particle {
@@ -107,13 +146,22 @@ const x = canvas.width / 2
 const y = canvas.height / 2
 
 
+/**
+  ___       _ _     _____                 _   _             
+ |_ _|_ __ (_) |_  |  ___|   _ _ __   ___| |_(_) ___  _ __  
+  | || '_ \| | __| | |_ | | | | '_ \ / __| __| |/ _ \| '_ \ 
+  | || | | | | |_  |  _|| |_| | | | | (__| |_| | (_) | | | |
+ |___|_| |_|_|\__| |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|
+                                                            
+*/
 function init() {
-    player = new Player(x,y,10, 'white', 0)
+    player = new Player(x,y,10, 'white', 0,100)
     projectiles = []
     enemies = []
     particles = []
     console.log(player)
     score = 0
+    enemiesKilled = 0
     scoreID.innerHTML = score
     endScore.innerHTML = score
 }
@@ -121,7 +169,14 @@ function init() {
 
 
 
-
+/**
+  ____                               _____                      _           
+ / ___| _ __   __ ___      ___ __   | ____|_ __   ___ _ __ ___ (_) ___  ___ 
+ \___ \| '_ \ / _` \ \ /\ / / '_ \  |  _| | '_ \ / _ \ '_ ` _ \| |/ _ \/ __|
+  ___) | |_) | (_| |\ V  V /| | | | | |___| | | |  __/ | | | | | |  __/\__ \
+ |____/| .__/ \__,_| \_/\_/ |_| |_| |_____|_| |_|\___|_| |_| |_|_|\___||___/
+       |_|                                                                  
+*/
 function spawnEnemies(){
     setInterval(() => {
         const radius = Math.random() * (30 - 4) + 4
@@ -144,12 +199,27 @@ function spawnEnemies(){
             y: Math.sin(angle)
         }
         enemies.push(new Enemy(x,y,radius,color,velocity))
-        console.log('Enemy: ' + enemies)
+        //console.log('Enemy: ' + enemies)
     }, 1000)
 }
 
-let animationID
-let score = 0
+/**
+     _          _                 _         _____                 _   _             
+    / \   _ __ (_)_ __ ___   __ _| |_ ___  |  ___|   _ _ __   ___| |_(_) ___  _ __  
+   / _ \ | '_ \| | '_ ` _ \ / _` | __/ _ \ | |_ | | | | '_ \ / __| __| |/ _ \| '_ \ 
+  / ___ \| | | | | | | | | | (_| | ||  __/ |  _|| |_| | | | | (__| |_| | (_) | | | |
+ /_/   \_\_| |_|_|_| |_| |_|\__,_|\__\___| |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|
+                                                                                    
+*/
+/**
+   ____      _ _ _     _                 
+  / ___|___ | | (_)___(_) ___  _ __  ___ 
+ | |   / _ \| | | / __| |/ _ \| '_ \/ __|
+ | |__| (_) | | | \__ \ | (_) | | | \__ \
+  \____\___/|_|_|_|___/_|\___/|_| |_|___/
+                                         
+*/
+
 
 function animate() {
     animationID = requestAnimationFrame(animate)
@@ -191,6 +261,7 @@ function animate() {
             console.log('end game')
             cancelAnimationFrame(animationID)   
             endScore.innerHTML = score
+            endScoreEnemies.innerHTML = enemiesKilled
             modalEL.style.display = 'flex'         
         }
 
@@ -211,7 +282,9 @@ function animate() {
                     ))
                     
                 }
-                    console.log('removed from screen')
+                    //console.log('removed from screen')
+
+                    //enemy hit
                 if (enemy.radius - 10 > 5){
                      // increase score
                     score += 100
@@ -223,14 +296,18 @@ function animate() {
                         projectiles.splice(projectileIndex, 1)
                     }, 0) 
                                   
-                } else {          
+                } else {  //enemy killed        
                      // increase score
                     score += 250
-                    scoreID.innerHTML = score          
+                    enemiesKilled += 1
+                    scoreID.innerHTML = score  
+                    killID.innerHTML = enemiesKilled        
                     setTimeout(() => {
                         enemies.splice(index, 1)
                         projectiles.splice(projectileIndex, 1)
                     }, 0) 
+
+                    console.log("Enemies Killed: " + enemiesKilled)
                 }
                 
             }
@@ -242,7 +319,7 @@ function animate() {
 addEventListener('click', (event) => { 
     // console.log(event.clientX, event.clientY)
      const angle = Math.atan2(event.clientY - canvas.height /2, event.clientX - canvas.width /2)
-     console.log(angle)
+    // console.log(angle)
      const velocity = {
          x: Math.cos(angle) * 3,
          y: Math.sin(angle) * 3
