@@ -215,16 +215,16 @@ function animate() {
 }
 
 addEventListener('mousedown', (event) => { 
-   // console.log(event.clientX, event.clientY)
-    const angle = Math.atan2(event.clientY - canvas.height /2, event.clientX - canvas.width /2)
-    console.log(angle)
-    const velocity = {
-        x: Math.cos(angle) * 3,
-        y: Math.sin(angle) * 3
-    }
-    projectiles.push(new Projectile(canvas.width /2, canvas.height /2, 5, 'white', 
-        velocity))
-})
+    // console.log(event.clientX, event.clientY)
+     const angle = Math.atan2(event.clientY - canvas.height /2, event.clientX - canvas.width /2)
+     console.log(angle)
+     const velocity = {
+         x: Math.cos(angle) * 3,
+         y: Math.sin(angle) * 3
+     }
+     projectiles.push(new Projectile(canvas.width /2, canvas.height /2, 5, 'white', 
+         velocity))
+ })
 addEventListener('keypress', (event) => {
     if (event.key === 'w')
         console.log('W')
